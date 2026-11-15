@@ -40,42 +40,53 @@ The project includes the **data-generation infrastructure**, not just model trai
 6. Train, compare, and evaluate regression models; assess timing-violation detection and error patterns.
 
 ## 2. End-to-end methodology
+```mermaid
+flowchart TB
+    A["Parameterized RTL Benchmarks"]
+    B["Experiment Configuration<br/>Architecture · Width · Clock · I/O Constraints"]
+    C["Yosys Synthesis + ABC Mapping"]
+    L[("Nangate Standard-Cell Library<br/>Typical Corner")]
+    D["Mapped Verilog Netlist"]
+    E["Mapped JSON + Synthesis Statistics"]
+    F["OpenSTA<br/>Setup Timing Analysis"]
+    G["Structural Feature Extraction<br/>Cell Counts · Area · Depth · Fanout"]
+    H["Reference Timing Labels<br/>Worst Setup Slack"]
+    I[("Consolidated Dataset<br/>1,950 Observations · 560 RTL Designs")]
+    J["Architecture-Disjoint Split<br/>Train: 1,367 · Validation: 294 · Test: 289"]
+    K["Model Exploration<br/>Ridge · Random Forest · XGBoost"]
+    M["Final Physics-Informed Random Forest<br/>300 Trees · 46 Input Features"]
+    N["Predicted Effective Delay"]
+    O["WNS Reconstruction<br/>WNS = Clock Period − Predicted Delay"]
+    P["Evaluation<br/>MAE · RMSE · R² · Violation Detection"]
+    Q["New Synthesized Design<br/>Structural Features + Clock Period"]
 
-```text
-Parameterized RTL designs + experiment configuration
-                         |
-                         v
-                  Yosys synthesis
-              + technology mapping (ABC)
-                         |
-              +----------+-----------+
-              |                      |
-              v                      v
-       Mapped netlist          Mapped JSON / logs
-              |                      |
-              v                      v
-      OpenSTA + SDC          Structural feature extraction
-              |                      |
-              v                      |
-    Setup slack and timing paths     |
-              |                      |
-              +----------+-----------+
-                         |
-                         v
-             Consolidated timing dataset
-                         |
-                         v
-       Architecture-disjoint train/val/test
-                         |
-                         v
-       Ridge / Random Forest / XGBoost
-                         |
-                         v
-          Physics-informed RF predictor
-                         |
-                         v
-       WNS regression + violation screening
+    A --> C
+    B --> C
+    B --> F
+    L --> C
+    L --> F
+
+    C --> D
+    C --> E
+    D --> F
+    E --> G
+    F --> H
+
+    G --> I
+    H --> I
+
+    I --> J
+    J --> K
+    K --> M
+    M --> N
+    N --> O
+    B -.->|Clock period| O
+    O --> P
+
+    Q -.->|Structural features| M
+    Q -.->|Clock period| O
 ```
+
 
 ### 2.1 Synthesis and mapping
 
