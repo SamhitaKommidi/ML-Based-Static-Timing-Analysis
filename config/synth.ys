@@ -1,0 +1,17 @@
+read_verilog -sv rtl/adder_pipe.v
+
+chparam -set WIDTH 8 top
+hierarchy -check -top top
+
+# Synthesize and optimize, leaving technology mapping for later
+synth -top top -noabc
+
+# Map flip-flops and combinational logic to Nangate45 cells
+dfflibmap -liberty /home/samhita_reddy_k/timing_ml/lib/NangateOpenCellLibrary_typical.lib
+abc -liberty /home/samhita_reddy_k/timing_ml/lib/NangateOpenCellLibrary_typical.lib
+
+clean
+
+# Report cell statistics and save the mapped netlist
+stat -liberty /home/samhita_reddy_k/timing_ml/lib/NangateOpenCellLibrary_typical.lib
+write_verilog -noattr -noexpr results/adder_mapped.v
